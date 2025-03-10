@@ -85,6 +85,14 @@
     </div>
 
     <script>
+            function verificarAutenticacao() {
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+          window.location.href = "index.html";
+        }
+      }
+      verificarAutenticacao();
+      
       function logout() {
         localStorage.removeItem("accessToken");
         window.location.href = "index.html";
