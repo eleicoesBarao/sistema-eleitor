@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script
+      src="https://kit.fontawesome.com/877e197de7.js"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="constantes.js"></script>
+  </head>
+  <body class="h-screen flex items-center justify-center overflow-hidden">
+    <button
+      onclick="logout()"
+      class="absolute top-4 left-4 bg-red-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-red-700 transition"
+    >
+      Sair
+    </button>
+
+    <div class="flex flex-col items-center justify-center h-screen">
+      <div class="flex flex-col items-center gap-4 p-10">
+        <label for="inputVoto" class="font-bold text-lg"
+          >Digite a chapa que deseja votar</label
+        >
+
+        <input
+          id="inputVoto"
+          name="inputVoto"
+          type="text"
+          onclick="preventInputFocus(this)"
+          disabled
+          maxlength="2"
+          class="text-center cursor-not-allowed outline outline-2 outline-gray-700 rounded-lg text-3xl font-semibold p-2 h-10 w-48"
+        />
+
+        <p id="votoCancelado" class="hidden font-bold text-red-700">
+          Voto cancelado! Reiniciando urna...
+        </p>
+        <p id="notFound" class="hidden font-bold text-red-700">
+          Candidato não encontrado.
+        </p>
+      </div>
+
+      <div id="buttons" class="flex flex-col items-center hidden">
+        <button
+          onclick="enviarNumeroChapa()"
+          class="text-sm font-bold border-2 border-black rounded-lg my-1 w-20"
+        >
+          Confirmar voto
+        </button>
+        <button
+          onclick="votarBranco()"
+          class="text-sm font-bold border-2 border-black rounded-lg my-1 w-20"
+        >
+          Votar branco
+        </button>
+        <button
+          onclick="cancelarVoto()"
+          class="text-sm font-bold border-2 border-black rounded-lg my-1 w-20"
+        >
+          Cancelar voto
+        </button>
+      </div>
+
+      <span class="my-8 bg-black w-96 h-px"></span>
+
+      <div>
+        <div class="flex items-center mb-4">
+          <button class="h-14 w-16 bg-white border-2 border-black"></button>
+          <p class="ml-5 w-48">PARA VOTAR EM BRANCO</p>
+        </div>
+
+        <div class="flex items-center mb-4">
+          <button class="h-14 w-16 bg-red-600 border-2 border-black"></button>
+          <p class="ml-5 w-48">PARA CORRIGIR</p>
+        </div>
+
+        <div class="flex items-center">
+          <button class="h-36 w-16 bg-green-600 border-2 border-black"></button>
+          <p class="ml-5 w-48">PARA CONFIRMAR</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function logout() {
+        localStorage.removeItem("accessToken");
+        window.location.href = "index.html";
+      }
+
+      const NUMERICOS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+
+      const inputVoto = document.getElementById("inputVoto");
+
+      // Funções
+      function inserirNumero(numero) {
+        if (inputVoto.value.length < 2) {
+          // Limita a quantidade de caracteres a 2
+          inputVoto.value += numero;
+        }
+      }
+
+      function votarBranco() {
+        const url = "confirmar.html?numero=BRANCO";
+        window.location.href = url;
+      }
+
+      function candidatoNotFound() {
+        var minhaDiv = document.getElementById("notFound");
+        setTimeout(function () {
+          minhaDiv.style.display = "block";
+        }, 1000);
+        setTimeout(function () {
+          minhaDiv.style.display = "none";
+        }, 3000);
+      }
+
+      function confirmarVoto() {
+        function enviarNumeroChapa(chapa) {
+          const n_chapInput = document.getElementById("inputVoto");
+          const numeroChapa = n_chapInput.value;
+          const Stringchapa = numeroChapa.toString();
+          console.log(Stringchapa);
+          const url = `${BaseUrlMesario}/candidato/${chapa}`;
+          const data = JSON.stringify({
+            chapa: Stringchapa,
+          });
+          const urlVoto = `confirmar.html?numero=${encodeURIComponent(
+            numeroChapa
+          )}`;
+
+          fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            },
+            body: data,
+          })
+            .then((response) => response.json())
+            .then((eleitor) => {
+              console.log(eleitor);
+              if (eleitor.chapa !== Stringchapa) {
+                candidatoNotFound();
+              } else {
+                window.location.href = urlVoto;
+              }
+            });
+        }
+        enviarNumeroChapa();
+      }
+
+      function mostrarConteudo() {
+        var minhaDiv = document.getElementById("votoCancelado");
+        var buttons = document.getElementById("buttons");
+        var options = document.getElementById("options");
+
+        setTimeout(function () {
+          minhaDiv.style.display = "block";
+          buttons.style.display = "none";
+          options.style.display = "none";
+        }, 1000);
+        setTimeout(function () {
+          minhaDiv.style.display = "none";
+          buttons.style.display = "flex";
+          options.style.display = "block";
+        }, 3000);
+      }
+
+      function cancelarVoto() {
+        votarBranco();
+      }
+
+      function limpaTudo() {
+        inputVoto.value = "";
+      }
+
+      // Event Listener
+      document.addEventListener("keydown", (event) => {
+        // Cria um Event Listener para capturar todas as teclas pressionadas
+
+        const tecla = event.key; // Captura a tecla clicada
+        // Use o alert comentado abaixo para descobrir o nome das teclas quando clicadas.
+        // alert('Tecla clicada\n\n' + 'key: ' + tecla);
+
+        event.preventDefault(); // Importante para previnir que a tecla clicada tenha seu comportamento padrão. Isto é, ao clicar tab, o navegador não irá 'focar' o próximo elemento.
+
+        if (NUMERICOS.includes(tecla)) {
+          inserirNumero(tecla);
+        }
+
+        if (tecla == "-") {
+          votarBranco();
+          limpaTudo();
+          return;
+        }
+
+        if (tecla == "+") {
+          limpaTudo();
+          return;
+        }
+
+        if (tecla == "Enter") {
+          confirmarVoto();
+          limpaTudo();
+          return;
+        }
+      });
+
+      function verificarUrnaLiberada() {
+        fetch(`${BaseUrlEleitor}/eleitor/verificar/${ra}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        })
+          .then((response) => response.json())
+
+          .then((data) => {
+            let urnaLiberada = data;
+            console.log(urnaLiberada);
+            setTimeout(verificarUrnaLiberada, 2000);
+
+            if (urnaLiberada === false) {
+              window.location.href = "index.html";
+            }
+          })
+          .catch((err) => {
+            console.error(err);
+          });
+      }
+      verificarUrnaLiberada();
+    </script>
+  </body>
+</html>
