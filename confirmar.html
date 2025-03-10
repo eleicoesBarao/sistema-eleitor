@@ -70,6 +70,14 @@
 
     <script src="mainEleitor.js"></script>
     <script>
+            function verificarAutenticacao() {
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+          window.location.href = "index.html";
+        }
+      }
+      verificarAutenticacao();
+      
       const params = new URLSearchParams(window.location.search);
       const chapa = params.get("numero");
       const numeroChapaURL = params.get("numero");
