@@ -37,5 +37,14 @@
     </script>
 
     <script src="mainMesario.js"></script>
+        <script>
+      function verificarAutenticacao() {
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+          window.location.href = "index.html";
+        }
+      }
+      verificarAutenticacao();
+    </script>
   </body>
 </html>
